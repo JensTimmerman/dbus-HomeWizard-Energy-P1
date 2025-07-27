@@ -1,6 +1,6 @@
-# W.I.P. -> Converting from dbus-shelly-3em-smartmeter
 # dbus-home-wizzard-energy-p1
 Integrate Home Wizzard Energy P1 meter into [Victron Energies Venus OS](https://github.com/victronenergy/venus)
+forked from https://github.com/back2basic/dbus-Home-Wizzard-Energy-P1 who forked from https://github.com/fabian-lauer/dbus-shelly-3em-smartmeter
 
 ## Purpose
 With the scripts in this repo it should be easy possible to install, uninstall, restart a service that connects the Shelly 3EM to the VenusOS and GX devices from Victron.
@@ -54,9 +54,9 @@ Thats it 😄
 Just grap a copy of the main branche and copy them to `/data/dbus-Home-Wizzard-Energy-P1`.
 After that call the install.sh script.
 
-The following script should do everything for you:
+The following script should do everything for you: (ssh as root onto your GX device: https://www.victronenergy.com/live/ccgx:root_access#enable_sshd_and_log_in )
 ```
-wget https://github.com/back2basic/dbus-Home-Wizzard-Energy-P1/archive/refs/heads/main.zip
+wget https://github.com/JensTimmerman/dbus-Home-Wizzard-Energy-P1/archive/refs/heads/main.zip
 unzip main.zip "dbus-Home-Wizzard-Energy-P1-main/*" -d /data
 mv /data/dbus-Home-Wizzard-Energy-P1-main /data/dbus-Home-Wizzard-Energy-P1
 chmod a+x /data/dbus-Home-Wizzard-Energy-P1/install.sh
