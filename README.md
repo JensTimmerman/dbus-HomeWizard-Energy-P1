@@ -36,7 +36,7 @@ So what is the script doing:
   A sample JSON file from Home Wizzard Energy P1 can be found [here](docs/home-wizzard-energy-p1.json)
 - Serial is taken from the response as device serial
 - Paths are added to the DBus with default value 0 - including some settings like name, etc
-- After that a "loop" is started which pulls Home Wizzard P1 data every 750ms from the REST-API and updates the values in the DBus
+- After that a "loop" is started which pulls Home Wizzard P1 data every 500ms from the REST-API and updates the values in the DBus
 
 Thats it 😄
 
