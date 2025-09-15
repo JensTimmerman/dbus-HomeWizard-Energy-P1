@@ -143,8 +143,8 @@ class DbusHomeWizzardEnergyP1Service:
   
     def _signOfLife(self):
         logging.info("--- Start: sign of life ---")
-        logging.info("Last _update() call: %s" % (self._lastUpdate))
-        logging.info("Last '/Ac/Power': %s" % (self._dbusservice['/Ac/Power']))
+        logging.info("Last _update() call: %s", self._lastUpdate)
+        logging.info("Last '/Ac/Power': %s",self._dbusservice['/Ac/Power'])
         logging.info("--- End: sign of life ---")
         return True
  
@@ -216,9 +216,9 @@ class DbusHomeWizzardEnergyP1Service:
 
             
             #logging
-            logging.debug("House Consumption (/Ac/Power): %s" % (self._dbusservice['/Ac/Power']))
-            logging.debug("House Forward (/Ac/Energy/Forward): %s" % (self._dbusservice['/Ac/Energy/Forward']))
-            logging.debug("House Reverse (/Ac/Energy/Revers): %s" % (self._dbusservice['/Ac/Energy/Reverse']))
+            logging.debug("House Consumption (/Ac/Power): %s", self._dbusservice['/Ac/Power'])
+            logging.debug("House Forward (/Ac/Energy/Forward): %s", self._dbusservice['/Ac/Energy/Forward'])
+            logging.debug("House Reverse (/Ac/Energy/Revers): %s", self._dbusservice['/Ac/Energy/Reverse'])
             logging.debug("---");
             
             # increment UpdateIndex - to show that new data is available an wrap
@@ -234,13 +234,13 @@ class DbusHomeWizzardEnergyP1Service:
             self._dbusservice['/Ac/Power'] = 0
             self._dbusservice['/UpdateIndex'] = (self._dbusservice['/UpdateIndex'] + 1 ) % 256        
         except Exception as e:
-            logging.critical('Error at %s', '_update', exc_info=e)
+            logging.critical('Error at _update', exc_info=e)
         
         # return true, otherwise add_timeout will be removed from GObject - see docs http://library.isr.ist.utl.pt/docs/pygtk2reference/gobject-functions.html#function-gobject--timeout-add
         return True
     
     def _handlechangedvalue(self, path, value):
-        logging.debug("someone else updated %s to %s" % (path, value))
+        logging.debug("someone else updated %s to %s", path, value)
         return True # accept the change
 
   
