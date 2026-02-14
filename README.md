@@ -3,7 +3,7 @@ Integrate HomeWizard Energy P1 meter into [Victron Energies Venus OS](https://gi
 forked from https://github.com/back2basic/dbus-Home-Wizzard-Energy-P1 who forked from https://github.com/fabian-lauer/dbus-shelly-3em-smartmeter
 
 ## Purpose
-With the scripts in this repo it should be easy possible to install, uninstall, restart a service that connects the Shelly 3EM to the VenusOS and GX devices from Victron.
+With the scripts in this repo it should be easy possible to install, uninstall, restart a service that connects the HomeWizard P1 to the VenusOS and GX devices from Victron.
 Idea is pasend on @RalfZim project linked below.
 
 
@@ -78,16 +78,15 @@ Within the project there is a file `/data/dbus-HomeWizard-Energy-P1/config.ini` 
 | DEFAULT  | Position | Fixed value: 0 = AC|
 | DEFAULT  | LogLevel  | Define the level of logging - lookup: https://docs.python.org/3/library/logging.html#levels |
 | DEFAULT  | Phases  | 1 for 1 phase system / 3 for 3 phase system |
-| ONPREMISE  | Host | IP or hostname of on-premise Shelly 3EM web-interface |
+| ONPREMISE  | Host | IP or hostname of on-premise HomeWizard P1 web-interface |
 <!-- | ONPREMISE  | Username | Username for htaccess login - leave blank if no username/password required |
 | ONPREMISE  | Password | Password for htaccess login - leave blank if no username/password required |
-| ONPREMISE  | L1Position | Which input on the Shelly in 3-phase grid is supplying a single Multi | -->
+| ONPREMISE  | L1Position | Which input on the HomeWizard P1 in 3-phase grid is supplying a single Multi | -->
 
 
 <!-- ### Remapping L1
-In a 3-phase grid with a single Multi, Venus OS expects L1 to be supplying the only Multi. This is not always the case. If for example your Multi is supplied by L3 (Input `C` on the Shelly) your GX device will show AC Loads as consuming from both L1 and L3. Setting `L1Position` to the appropriate Shelly input allows for remapping the phases and showing correct data on the GX device.
-
-If your single Multi is connected to the Input `A` on the Shelly you don't need to change this setting. Setting `L1Position` to `2` would swap the `B` CT & Voltage sensors data on the Shelly with the `A` CT & Voltage sensors data on the Shelly. Respectively, setting `L1Position` to `3` would swap `A` and `C` inputs. -->
+In a 3-phase grid with a single Multi, Venus OS expects L1 to be supplying the only Multi. This is not always the case. If for example your Multi is supplied by L3 your GX device will show AC Loads as consuming from both L1 and L3. Setting `L1Position` to the appropriate HomeWizard P1 input allows for remapping the phases and showing correct data on the GX device.
+-->
 
 ## Used documentation
 - https://github.com/victronenergy/venus/wiki/dbus#grid   DBus paths for Victron namespace GRID

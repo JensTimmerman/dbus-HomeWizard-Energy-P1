@@ -150,7 +150,7 @@ class DbusHomeWizardEnergyP1Service:
  
     def _update(self):   
         try:
-            #get data from Shelly 3em
+            #get data from HomeWizard P1
             meter_data = self._getP1Data()
             config = self._getConfig()
 
@@ -227,7 +227,7 @@ class DbusHomeWizardEnergyP1Service:
             #update lastupdate vars
             self._lastUpdate = time.time()
         except (ValueError, requests.exceptions.ConnectionError, requests.exceptions.Timeout, ConnectionError) as e:
-            logging.critical('Error getting data from Shelly - check network or Shelly status. Setting power values to 0. Details: %s', e, exc_info=e)       
+            logging.critical('Error getting data from HomeWizard P1 - check network or HomeWizard P1 status. Setting power values to 0. Details: %s', e, exc_info=e)       
             self._dbusservice['/Ac/L1/Power'] = 0                                       
             self._dbusservice['/Ac/L2/Power'] = 0                                       
             self._dbusservice['/Ac/L3/Power'] = 0
