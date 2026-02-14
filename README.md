@@ -1,5 +1,5 @@
 # dbus-home-wizzard-energy-p1
-Integrate Home Wizzard Energy P1 meter into [Victron Energies Venus OS](https://github.com/victronenergy/venus)
+Integrate HomeWizard Energy P1 meter into [Victron Energies Venus OS](https://github.com/victronenergy/venus)
 forked from https://github.com/back2basic/dbus-Home-Wizzard-Energy-P1 who forked from https://github.com/fabian-lauer/dbus-shelly-3em-smartmeter
 
 ## Purpose
@@ -18,7 +18,7 @@ This project is my first on GitHub and with the Victron Venus OS, so I took some
 
 ## How it works
 ### My setup
-- Home Wizzard Energy P1 with latest firmware 
+- HomeWizard Energy P1 with latest firmware 
   - 1 or 3-Phase installation (normal for Netherlands)
   - Connected to Wifi network "A"
   - IP 192.168.2.13/24  
@@ -32,11 +32,11 @@ As mentioned above the script is inspired by @RalfZim fronius smartmeter impleme
 So what is the script doing:
 - Running as a service
 - connecting to DBus of the Venus OS `com.victronenergy.grid.http_40` or `com.victronenergy.pvinverter.http_40`
-- After successful DBus connection Home Wizzard P1 is accessed via REST-API - simply the /status is called and a JSON is returned with all details
-  A sample JSON file from Home Wizzard Energy P1 can be found [here](docs/home-wizzard-energy-p1.json)
+- After successful DBus connection HomeWizard P1 is accessed via REST-API - simply the /status is called and a JSON is returned with all details
+  A sample JSON file from HomeWizard Energy P1 can be found [here](docs/homewizard-energy-p1.json)
 - Serial is taken from the response as device serial
 - Paths are added to the DBus with default value 0 - including some settings like name, etc
-- After that a "loop" is started which pulls Home Wizzard P1 data every 500ms from the REST-API and updates the values in the DBus
+- After that a "loop" is started which pulls HomeWizard P1 data every 500ms from the REST-API and updates the values in the DBus
 
 Thats it 😄
 
@@ -51,22 +51,22 @@ Thats it 😄
 
 ## Install & Configuration
 ### Get the code
-Just grap a copy of the main branche and copy them to `/data/dbus-Home-Wizzard-Energy-P1`.
+Just grap a copy of the main branche and copy them to `/data/dbus-HomeWizard-Energy-P1`.
 After that call the install.sh script.
 
 The following script should do everything for you: (ssh as root onto your GX device: https://www.victronenergy.com/live/ccgx:root_access#enable_sshd_and_log_in )
 ```
 wget https://github.com/JensTimmerman/dbus-Home-Wizzard-Energy-P1/archive/refs/heads/main.zip
 unzip main.zip "dbus-Home-Wizzard-Energy-P1-main/*" -d /data
-mv /data/dbus-Home-Wizzard-Energy-P1-main /data/dbus-Home-Wizzard-Energy-P1
-chmod a+x /data/dbus-Home-Wizzard-Energy-P1/install.sh
-/data/dbus-Home-Wizzard-Energy-P1/install.sh
+mv /data/dbus-Home-Wizzard-Energy-P1-main /data/dbus-HomeWizard-Energy-P1
+chmod a+x /data/dbus-HomeWizard-Energy-P1/install.sh
+/data/dbus-HomeWizard-Energy-P1/install.sh
 rm main.zip
 ```
 ⚠️ Check configuration after that - because service is already installed an running and with wrong connection data (host, username, pwd) you will spam the log-file
 
 ### Change config.ini
-Within the project there is a file `/data/dbus-Home-Wizzard-Energy-P1/config.ini` - just change the values - most important is the host, username and password in section "ONPREMISE". More details below:
+Within the project there is a file `/data/dbus-HomeWizard-Energy-P1/config.ini` - just change the values - most important is the host, username and password in section "ONPREMISE". More details below:
 
 | Section  | Config vlaue | Explanation |
 | ------------- | ------------- | ------------- |

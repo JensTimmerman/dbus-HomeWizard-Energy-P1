@@ -22,8 +22,8 @@ sys.path.insert(1, os.path.join(os.path.dirname(__file__), '/opt/victronenergy/d
 from vedbus import VeDbusService
 
 
-class DbusHomeWizzardEnergyP1Service:
-    def __init__(self, paths, productname='Home Wizzard Energy P1', connection='Home Wizzard Energy P1 HTTP JSOn service'):
+class DbusHomeWizardEnergyP1Service:
+    def __init__(self, paths, productname='HomeWizard Energy P1', connection='HomeWizard Energy P1 HTTP JSOn service'):
         config = self._getConfig()
         deviceinstance = int(config['DEFAULT']['DeviceInstance'])
         customname = config['DEFAULT']['CustomName']
@@ -130,7 +130,7 @@ class DbusHomeWizzardEnergyP1Service:
         
         # check for response
         if not meter_r:
-            raise ConnectionError("No response from Home Wizzard Energy - %s" % (URL))
+            raise ConnectionError("No response from HomeWizard Energy - %s" % (URL))
         
         meter_data = meter_r.json()     
         
@@ -285,7 +285,7 @@ def main():
         
         #start our main-service
         
-        pvac_output = DbusHomeWizzardEnergyP1Service(
+        pvac_output = DbusHomeWizardEnergyP1Service(
             paths={
                 '/Ac/Energy/Forward': {'initial': 0, 'textformat': _kwh}, # energy bought from the grid
                 '/Ac/Energy/Reverse': {'initial': 0, 'textformat': _kwh}, # energy sold to the grid
