@@ -91,6 +91,7 @@ Role = grid                ; grid | pvinverter
 DeviceInstance = 40        ; must be unique across all devices
 CustomName = Shelly Grid
 Position = 1               ; 0=AC, 1=AC-Out 1, 2=AC-Out 2
+IsPro = 0 ; Valid: 0 or 1 for Shelly Pro device
 
 [device:pv]
 Host = 192.168.0.62
@@ -101,6 +102,7 @@ Role = pvinverter
 DeviceInstance = 41
 CustomName = Shelly PV
 Position = 0
+IsPro = 0 ; Valid: 0 or 1 for Shelly Pro device
 ```
 
 ### Field reference

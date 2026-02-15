@@ -59,6 +59,8 @@ class DbusShellyEmService:
         self.device_cfg = device_cfg
 
         di_str = self.device_cfg.get("DeviceInstance", "").strip()
+        self.pro = bool(self.device_cfg.get("IsPro", "False").strip())
+        logging.debug('is pro: %s', self.pro)
         if not di_str or not di_str.isdigit():
             logging.critical(
                 f"Invalid or missing DeviceInstance for section '{dev_name}' — please set a unique integer"
@@ -194,7 +196,10 @@ class DbusShellyEmService:
         return S / v
 
     def _getShellyData(self):
-        URL = self.shelly_base + "/status"
+        if not self.pro:
+            URL = self.shelly_base + "/status"
+        else:
+            URL = self.shelly_base + "/rpc/Shelly.GetStatus"
 
         def _do_get():
             return self.session.get(
@@ -220,7 +225,11 @@ class DbusShellyEmService:
 
         try:
             meter_data = r.json()
+            self.log.debug("Got meter data: %s", meter_data)
         except ValueError as e:
+            self.log.critical(
+                "Ivalid JSON from Shelly at %s: %s", URL, e, exc_info=e
+            )
             raise ValueError(f"Invalid JSON from Shelly at {URL}: {e}")
 
         if not isinstance(meter_data, dict):
@@ -231,7 +240,14 @@ class DbusShellyEmService:
     def _getShellySerial(self):
         meter_data = self._getShellyData()
         if not meter_data.get("mac"):
-            raise ValueError("Response does not contain 'mac' attribute")
+            self.log.debug("Response does not contain 'mac' attribute" )
+            if not meter_data.get('sys').get('mac'):
+                self.log.critical(
+                    "Response does not contain 'sys/mmac' attribute"
+                )
+                raise ValueError("Response does not contain 'mac' attribute")
+            return meter_data['sys']["mac"]
+
         return meter_data["mac"]
 
     def _start_periodic(self):
@@ -267,28 +283,42 @@ class DbusShellyEmService:
         try:
             meter_data = self._getShellyData()
             ch = self.channel_idx
-            em_list = meter_data.get("emeters", [])
-            if not isinstance(em_list, list) or len(em_list) <= ch:
-                raise ValueError(f"Shelly status has no emeters[{ch}]")
-            em = em_list[ch]
+            if self.pro: # for shelly 1 pro
+                self.log.debug('getting pro data')
+                p = float(meter_data['switch:0']['apower'])
+                v = float(meter_data['switch:0']['voltage'])
+                i = float(meter_data['switch:0']['current'])
+                q = float('NaN') #float(meter_data['switch:0']['qpower'])
+                total_kwh = float(meter_data['switch:0']['aenergy']['total']  ) / 1000.0
+                total_returned_kwh = float(meter_data['switch:0']['ret_aenergy']['total'] ) / 1000.0
 
-            # Bail out if Shelly marks this sample invalid
-            if not bool(em.get("is_valid", True)):
-                self.log.warning(
-                    f"Shelly channel {ch} reports is_valid=false; skipping update"
-                )
-                return True
 
-            p = float(em.get("power", 0) or 0)
-            v = float(em.get("voltage", 0) or 0)
-            q = float(em.get("reactive", 0) or 0)
+            else:
+                self.log.debug('getting data')
+                em_list = meter_data.get("emeters", [])
+                if not isinstance(em_list, list) or len(em_list) <= ch:
+                    logging.critical("Shelly status has no emeters for channel %s", ch)
+                    raise ValueError(f"Shelly status has no emeters[{ch}]")
+                em = em_list[ch]
 
-            # Shelly doesn't report current, so we calculate it
-            i = self._calc_current(p, q, v)
+                # Bail out if Shelly marks this sample invalid
+                if not bool(em.get("is_valid", True)):
+                    self.log.warning(
+                        f"Shelly channel {ch} reports is_valid=false; skipping update"
+                    )
+                    return True
 
-            total_kwh = float(em.get("total", 0) or 0) / 1000.0
-            total_returned_kwh = float(em.get("total_returned", 0) or 0) / 1000.0
+                p = float(em.get("power", 0) or 0)
+                v = float(em.get("voltage", 0) or 0)
+                q = float(em.get("reactive", 0) or 0)
 
+                # Shelly doesn't report current, so we calculate it
+                i = self._calc_current(p, q, v)
+
+                total_kwh = float(em.get("total", 0) or 0) / 1000.0
+                total_returned_kwh = float(em.get("total_returned", 0) or 0) / 1000.0
+
+            logging.debug('p %s, v %s, i %s, q %s, total_kwh %s, total_returned_kwh %s', p, v, i, q, total_kwh, total_returned_kwh)
             # Send data to DBus
             self._dbusservice["/Ac/Power"] = p
             self._dbusservice["/Ac/Voltage"] = v
