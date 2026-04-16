@@ -7,10 +7,7 @@ import logging
 import logging.handlers
 import sys
 import os
-if sys.version_info.major == 2:
-    import gobject
-else:
-    from gi.repository import GLib as gobject
+from gi.repository import GLib as gobject
 import time
 import requests # for http GET
 import configparser # for config/ini file
@@ -77,10 +74,6 @@ class DbusHomeWizardEnergyP1Service:
 
     def _getP1Serial(self):
         meter_data = self._getP1Data()
-
-        if not meter_data['unique_id']:
-            raise ValueError("Response does not contain 'unique_id' attribute")
-
         serial = meter_data['unique_id']
         return serial
 
@@ -122,17 +115,22 @@ class DbusHomeWizardEnergyP1Service:
     def _getP1Data(self):
         URL = self._getP1StatusUrl()
         meter_r = requests.get(url = URL, timeout=5)
+        meter_r.raise_for_status()  # Raises HTTPError for bad status codes
 
-        # check for response
-        if not meter_r:
-            raise ConnectionError("No response from HomeWizard Energy - %s" % (URL))
-
-        meter_data = meter_r.json()
-
-        # check for Json
-        if not meter_data:
-            raise ValueError("Converting response to JSON failed")
-
+        try:
+            meter_data = meter_r.json()
+        
+        except requests.exceptions.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON response from HomeWizard: {e}")
+        
+        # Validate required fields exist
+        required_fields = ['active_power_w', 'active_voltage_l1_v', 'active_current_l1_a', 
+                           'total_power_import_kwh', 'total_power_export_kwh', 'unique_id']
+        missing = [field for field in required_fields if field not in meter_data]
+        
+        if missing:
+            raise ValueError(f"Missing required fields in API response: {missing}")
+    
         return meter_data
 
     def _signOfLife(self):
@@ -148,65 +146,32 @@ class DbusHomeWizardEnergyP1Service:
             meter_data = self._getP1Data()
             config = self._getConfig()
 
-            # No remapping possible!
-            # try:
-            #     remapL1 = int(config['ONPREMISE']['L1Position'])
-            # except KeyError:
-            #     remapL1 = 1
+            try:
+                remapL1 = int(config['ONPREMISE']['L1Position'])
+                old_l1 = meter_data['emeters'][0]
+                meter_data['emeters'][0] = meter_data['emeters'][remapL1-1]
+                meter_data['emeters'][remapL1-1] = old_l1
+            except KeyError:
+                pass
 
-            # if remapL1 > 1:
-            #     old_l1 = meter_data['emeters'][0]
-            #     meter_data['emeters'][0] = meter_data['emeters'][remapL1-1]
-            #     meter_data['emeters'][remapL1-1] = old_l1
             phases = config['DEFAULT']['Phases']
 
-            if phases == '1':
-                # send data to DBus for 3pahse system
-                self._dbusservice['/Ac/Power'] = meter_data['active_power_w']
-                self._dbusservice['/Ac/L1/Voltage'] = meter_data['active_voltage_l1_v']
-                # self._dbusservice['/Ac/L2/Voltage'] = meter_data['active_voltage_l2_v']
-                # self._dbusservice['/Ac/L3/Voltage'] = meter_data['active_voltage_l3_v']
-                self._dbusservice['/Ac/L1/Current'] = meter_data['active_current_l1_a']
-                # self._dbusservice['/Ac/L2/Current'] = meter_data['active_current_l2_a']
-                # self._dbusservice['/Ac/L3/Current'] = meter_data['active_current_l3_a']
-                self._dbusservice['/Ac/L1/Power'] = meter_data['active_power_l1_w']
-                # self._dbusservice['/Ac/L2/Power'] = meter_data['active_power_l1_w']
-                # self._dbusservice['/Ac/L3/Power'] = meter_data['active_power_l1_w']
-                self._dbusservice['/Ac/Energy/Forward'] = meter_data['total_power_import_kwh']
-                self._dbusservice['/Ac/Energy/Reverse'] = meter_data['total_power_export_kwh']
-                # self._dbusservice['/Ac/L1/Energy/Forward'] = (meter_data['total_power_import_kwh']/1000)
-                # self._dbusservice['/Ac/L1/Energy/Reverse'] = (meter_data['total_power_export_kwh']/1000)
+            self._dbusservice['/Ac/Power'] = meter_data['active_power_w']
+            self._dbusservice['/Ac/L1/Voltage'] = meter_data['active_voltage_l1_v']
+            self._dbusservice['/Ac/L1/Current'] = meter_data['active_current_l1_a']
+            self._dbusservice['/Ac/L1/Power'] = meter_data['active_power_l1_w']
+            self._dbusservice['/Ac/Energy/Forward'] = meter_data['total_power_import_kwh']
+            self._dbusservice['/Ac/Energy/Reverse'] = meter_data['total_power_export_kwh']
+
+           
             if phases == '3':
-                # send data to DBus for 3pahse system
-                self._dbusservice['/Ac/Power'] = meter_data['active_power_w']
-                self._dbusservice['/Ac/L1/Voltage'] = meter_data['active_voltage_l1_v']
+                # send data to DBus for 3phase system
                 self._dbusservice['/Ac/L2/Voltage'] = meter_data['active_voltage_l2_v']
                 self._dbusservice['/Ac/L3/Voltage'] = meter_data['active_voltage_l3_v']
-                self._dbusservice['/Ac/L1/Current'] = meter_data['active_current_l1_a']
                 self._dbusservice['/Ac/L2/Current'] = meter_data['active_current_l2_a']
                 self._dbusservice['/Ac/L3/Current'] = meter_data['active_current_l3_a']
-                self._dbusservice['/Ac/L1/Power'] = meter_data['active_power_l1_w']
                 self._dbusservice['/Ac/L2/Power'] = meter_data['active_power_l2_w']
                 self._dbusservice['/Ac/L3/Power'] = meter_data['active_power_l3_w']
-                self._dbusservice['/Ac/Energy/Forward'] = meter_data['total_power_import_kwh']
-                self._dbusservice['/Ac/Energy/Reverse'] = meter_data['total_power_export_kwh']
-                # self._dbusservice['/Ac/L1/Energy/Forward'] = (meter_data['emeters'][0]['total']/1000)
-                # self._dbusservice['/Ac/L2/Energy/Forward'] = (meter_data['emeters'][1]['total']/1000)
-                # self._dbusservice['/Ac/L3/Energy/Forward'] = (meter_data['emeters'][2]['total']/1000)
-                # self._dbusservice['/Ac/L1/Energy/Reverse'] = (meter_data['emeters'][0]['total_returned']/1000)
-                # self._dbusservice['/Ac/L2/Energy/Reverse'] = (meter_data['emeters'][1]['total_returned']/1000)
-                # self._dbusservice['/Ac/L3/Energy/Reverse'] = (meter_data['emeters'][2]['total_returned']/1000)
-
-            # Old version
-            # self._dbusservice['/Ac/Energy/Forward'] = self._dbusservice['/Ac/L1/Energy/Forward'] + self._dbusservice['/Ac/L2/Energy/Forward'] + self._dbusservice['/Ac/L3/Energy/Forward']
-            # self._dbusservice['/Ac/Energy/Reverse'] = self._dbusservice['/Ac/L1/Energy/Reverse'] + self._dbusservice['/Ac/L2/Energy/Reverse'] + self._dbusservice['/Ac/L3/Energy/Reverse']
-
-            # New Version - from xris99
-            # Calc = 60min * 60 sec / 0.500 (refresh interval of 500ms) * 1000
-            # if (self._dbusservice['/Ac/Power'] > 0):
-            #     self._dbusservice['/Ac/Energy/Forward'] = self._dbusservice['/Ac/Energy/Forward'] + (self._dbusservice['/Ac/Power']/(60*60/0.5*1000))
-            # if (self._dbusservice['/Ac/Power'] < 0):
-            #     self._dbusservice['/Ac/Energy/Reverse'] = self._dbusservice['/Ac/Energy/Reverse'] + (self._dbusservice['/Ac/Power']*-1/(60*60/0.5*1000))
 
             # logging
             logging.debug("House Consumption (/Ac/Power): %s", self._dbusservice['/Ac/Power'])
@@ -252,11 +217,13 @@ def getLogLevel():
 
 def main():
     # configure logging
+    log_file = "%s/current.log" % (os.path.dirname(os.path.realpath(__file__)))
+    handler = logging.handlers.RotatingFileHandler(log_file, maxBytes=1e6, backupCount=5)
     logging.basicConfig(format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S',
         level=getLogLevel(),
         handlers=[
-            logging.FileHandler("%s/current.log" % (os.path.dirname(os.path.realpath(__file__)))),
+            handler,
             logging.StreamHandler()
         ])
 
@@ -293,13 +260,7 @@ def main():
                 '/Ac/L1/Power': {'initial': 0, 'textformat': _w},
                 '/Ac/L2/Power': {'initial': 0, 'textformat': _w},
                 '/Ac/L3/Power': {'initial': 0, 'textformat': _w},
-                # '/Ac/L1/Energy/Forward': {'initial': 0, 'textformat': _kwh},
-                # '/Ac/L2/Energy/Forward': {'initial': 0, 'textformat': _kwh},
-                # '/Ac/L3/Energy/Forward': {'initial': 0, 'textformat': _kwh},
-                # '/Ac/L1/Energy/Reverse': {'initial': 0, 'textformat': _kwh},
-                # '/Ac/L2/Energy/Reverse': {'initial': 0, 'textformat': _kwh},
-                # '/Ac/L3/Energy/Reverse': {'initial': 0, 'textformat': _kwh},
-                })
+            })
         logging.info('Connected to dbus, and switching over to gobject.MainLoop() (= event based)')
         mainloop = gobject.MainLoop()
         mainloop.run()
