@@ -1,4 +1,6 @@
-# dbus-home-wizzard-energy-p1
+# dbus-HomeWizard-energy-p1
+This project is not affiliated with HomeWizard or Victron.
+
 Integrate HomeWizard Energy P1 meter into [Victron Energies Venus OS](https://github.com/victronenergy/venus)
 forked from https://github.com/back2basic/dbus-Home-Wizzard-Energy-P1 who forked from https://github.com/fabian-lauer/dbus-shelly-3em-smartmeter
 
@@ -56,9 +58,9 @@ After that call the install.sh script.
 
 The following script should do everything for you: (ssh as root onto your GX device: https://www.victronenergy.com/live/ccgx:root_access#enable_sshd_and_log_in )
 ```
-wget https://github.com/JensTimmerman/dbus-Home-Wizzard-Energy-P1/archive/refs/heads/main.zip
-unzip main.zip "dbus-Home-Wizzard-Energy-P1-main/*" -d /data
-mv /data/dbus-Home-Wizzard-Energy-P1-main /data/dbus-HomeWizard-Energy-P1
+wget https://github.com/JensTimmerman/dbus-HomeWizard-Energy-P1/archive/refs/heads/main.zip
+unzip main.zip "dbus-HomeWizard-Energy-P1-main/*" -d /data
+mv /data/dbus-HomeWizard-Energy-P1-main /data/dbus-HomeWizard-Energy-P1
 chmod a+x /data/dbus-HomeWizard-Energy-P1/install.sh
 /data/dbus-HomeWizard-Energy-P1/install.sh
 rm main.zip
